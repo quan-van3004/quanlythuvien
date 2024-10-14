@@ -26,11 +26,16 @@
         "Subject": "hoa",
         "MidtermScore": 10,
         "FinalScore": 10
+      },
+      {
+        "Subject": "tieng anh",
+        "MidtermScore": 10,
+        "FinalScore": 10
       }
     ],
     "Name": "quan",
-    "Age": 18,
-    "Address": "quang nam"
+    "Age": 19,
+    "Address": "thanh hoa"
   },
   {
     "StudentId": "31231027034",

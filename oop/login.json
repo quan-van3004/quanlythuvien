@@ -1,32 +1,32 @@
 [
-    {
-        "Username": "luong thanh",
-        "Password": "123456",
-        "Role": "teacher"
-    },
-    {
-        "Username": "chi thanh",
-        "Password": "123456",
-        "Role": "teacher"
-    },
-    {
-        "Username": "quan",
-        "Password": "123456",
-        "Role": "student"
-    },
-    {
-        "Username": "lan thanh",
-        "Password": "123456",
-        "Role": "student"
-    },
-    {
-        "Username": "nguyen",
-        "Password": "123456",
-        "Role": "student"
-    },
-    {
-        "Username": "huy",
-        "Password": "123456",
-        "Role": "student"
-    }
+  {
+    "Username": "luong thanh",
+    "Password": "123456",
+    "Role": "teacher"
+  },
+  {
+    "Username": "chi thanh",
+    "Password": "123456",
+    "Role": "teacher"
+  },
+  {
+    "Username": "quan",
+    "Password": "123456",
+    "Role": "student"
+  },
+  {
+    "Username": "lan thanh",
+    "Password": "123456",
+    "Role": "student"
+  },
+  {
+    "Username": "nguyen",
+    "Password": "123456",
+    "Role": "student"
+  },
+  {
+    "Username": "huy",
+    "Password": "123456",
+    "Role": "student"
+  }
 ]
