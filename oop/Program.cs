@@ -119,7 +119,7 @@ namespace Name.Models
         public override void DisplayInfo()
         {
             base.DisplayInfo();
-            Console.WriteLine($"Mã sinh viên: {StudentId}, Lớp: {Class}");
+            Console.WriteLine($"Mã học sinh: {StudentId}, Lớp: {Class}");
         }
 
         public double CalculateAverageScore()
@@ -221,7 +221,8 @@ namespace Name.Models
                 Console.WriteLine("2. Thêm hoặc sửa điểm");
                 Console.WriteLine("3. Sửa thông tin của học sinh");
                 Console.WriteLine("4. Tìm kiếm và xem điểm của học sinh");
-                Console.WriteLine("5. Thoát");
+                Console.WriteLine("5. danh sách học sinh");
+                Console.WriteLine("6. Thoát");
             }
             else
             {
@@ -230,6 +231,7 @@ namespace Name.Models
             }
             Console.Write("Chọn một tùy chọn: ");
         }
+
     }
 
     public class StudentSearch
@@ -258,7 +260,7 @@ namespace Name.Models
 
         static void Main(string[] args)
         {
-            Console.OutputEncoding = Encoding.UTF8; // Đặt mã hóa đầu ra thành UTF-8
+            Console.OutputEncoding = Encoding.UTF8;
 
             List<LoginInfo> loginInfos = FileHandler.LoadLoginData(loginFilePath);
             string role = Login(loginInfos);
@@ -304,6 +306,9 @@ namespace Name.Models
                             SearchStudentAndDisplayScores();
                             break;
                         case "5":
+                            SummarizeByClass();
+                            break;
+                        case "6":
                             return;
                         default:
                             Console.WriteLine("Tùy chọn không hợp lệ, vui lòng thử lại.");
@@ -311,6 +316,7 @@ namespace Name.Models
                     }
                 }
             }
+
         }
 
         public static string Login(List<LoginInfo> loginInfos)
@@ -332,9 +338,8 @@ namespace Name.Models
 
         public static void SearchStudentAndDisplayScores()
         {
-            students = FileHandler.LoadDataFromFile(studentFilePath); // Tải lại dữ liệu từ file JSON mỗi khi gọi phương thức này
-
-            Console.Write("Nhập mã sinh viên hoặc tên học sinh: ");
+            students = FileHandler.LoadDataFromFile(studentFilePath);
+            Console.Write("Nhập mã học sinh hoặc tên học sinh: ");
             string input = Console.ReadLine();
             Student student = StudentSearch.SearchStudent(students, input);
 
@@ -364,20 +369,45 @@ namespace Name.Models
             }
             Console.Write("Nhập địa chỉ: ");
             string address = Console.ReadLine();
-            Console.Write("Nhập mã sinh viên: ");
+            Console.Write("Nhập mã học sinh: ");
             string studentId = Console.ReadLine();
             Console.Write("Nhập lớp: ");
             string className = Console.ReadLine();
 
             Student student = new Student(name, age, address, studentId, className);
             students.Add(student);
-            FileHandler.SaveDataToFile(studentFilePath, students); // Lưu dữ liệu sau khi thêm học sinh
+            FileHandler.SaveDataToFile(studentFilePath, students);
             Console.WriteLine("Đã thêm học sinh thành công!");
         }
+        public static void SummarizeByClass()
+        {
+            // Nhóm học sinh theo lớp
+            var studentsByClass = new Dictionary<string, List<Student>>();
+
+            foreach (var student in students)
+            {
+                if (!studentsByClass.ContainsKey(student.Class))
+                {
+                    studentsByClass[student.Class] = new List<Student>();
+                }
+                studentsByClass[student.Class].Add(student);
+            }
+
+            // Hiển thị kết quả tổng kết
+            foreach (var entry in studentsByClass)
+            {
+                Console.WriteLine($"Lớp: {entry.Key}");
+                foreach (var student in entry.Value)
+                {
+                    Console.WriteLine($"  - {student.Name}, Mã học sinh: {student.StudentId}");
+                }
+            }
+        }
+
 
         public static void AddOrUpdateScore()
         {
-            Console.Write("Nhập mã sinh viên: ");
+            Console.Write("Nhập mã học sinh: ");
             string studentId = Console.ReadLine();
             Student student = StudentSearch.SearchStudent(students, studentId);
             if (student == null)
@@ -412,12 +442,12 @@ namespace Name.Models
                 Console.WriteLine("Đã thêm điểm môn học.");
             }
 
-            FileHandler.SaveDataToFile(studentFilePath, students); // Lưu dữ liệu sau khi thêm hoặc sửa điểm
+            FileHandler.SaveDataToFile(studentFilePath, students);
         }
 
         public static void UpdateStudentInfo()
         {
-            Console.Write("Nhập mã sinh viên: ");
+            Console.Write("Nhập mã học sinh: ");
             string studentId = Console.ReadLine();
             Student student = StudentSearch.SearchStudent(students, studentId);
             if (student == null)
@@ -442,7 +472,7 @@ namespace Name.Models
             string newClass = Console.ReadLine();
             if (!string.IsNullOrEmpty(newClass)) student.Class = newClass;
 
-            FileHandler.SaveDataToFile(studentFilePath, students); // Lưu dữ liệu sau khi cập nhật thông tin
+            FileHandler.SaveDataToFile(studentFilePath, students);
             Console.WriteLine("Đã cập nhật thông tin học sinh thành công!");
         }
     }
