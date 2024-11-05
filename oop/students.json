@@ -1,7 +1,7 @@
 [
   {
     "StudentId": "31231027035",
-    "Class": "12/2",
+    "Class": "12/3",
     "Scores": [
       {
         "Subject": "toan",
@@ -15,12 +15,12 @@
   },
   {
     "StudentId": "31231027033",
-    "Class": "12/1",
+    "Class": "12/2",
     "Scores": [
       {
         "Subject": "toan",
-        "MidtermScore": 8,
-        "FinalScore": 8
+        "MidtermScore": 5,
+        "FinalScore": 5
       },
       {
         "Subject": "hoa",
@@ -31,10 +31,15 @@
         "Subject": "tieng anh",
         "MidtermScore": 10,
         "FinalScore": 10
+      },
+      {
+        "Subject": "C#",
+        "MidtermScore": 9,
+        "FinalScore": 10
       }
     ],
-    "Name": "quan",
-    "Age": 19,
+    "Name": "Nguy?n van qu\u00E2n",
+    "Age": 20,
     "Address": "thanh hoa"
   },
   {
@@ -47,13 +52,13 @@
         "FinalScore": 9
       }
     ],
-    "Name": "nguyen",
+    "Name": "trong nguyen",
     "Age": 18,
     "Address": "quang nam"
   },
   {
     "StudentId": "31231027036",
-    "Class": "12/1",
+    "Class": "12/4",
     "Scores": [
       {
         "Subject": "toan",
@@ -61,9 +66,8 @@
         "FinalScore": 10
       }
     ],
-    "Name": "huy",
+    "Name": "huy vux",
     "Age": 18,
     "Address": "quang nam"
   }
-  
 ]

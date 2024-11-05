@@ -2,12 +2,14 @@
   {
     "Username": "luong thanh",
     "Password": "123456",
-    "Role": "teacher"
+    "Role": "teacher",
+    "Subject": "toan"
   },
   {
     "Username": "chi thanh",
     "Password": "123456",
-    "Role": "teacher"
+    "Role": "teacher",
+    "Subject": "hoa"
   },
   {
     "Username": "quan",
@@ -28,5 +30,10 @@
     "Username": "huy",
     "Password": "123456",
     "Role": "student"
+  },
+  {
+    "Username": "admin",
+    "Password": "123456",
+    "Role": "admin"
   }
 ]

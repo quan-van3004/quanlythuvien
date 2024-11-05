@@ -44,6 +44,64 @@ namespace Name.Models
     }
 
     [Serializable]
+    public class Teacher : Person
+    {
+        public List<string> Subjects { get; set; }
+
+        public Teacher()
+        {
+            Subjects = new List<string>();
+        }
+
+        public Teacher(string name, int age, string address, string subject)
+            : base(name, age, address)
+        {
+            Subjects = new List<string> { subject };
+        }
+
+        public void AddSubject(string subject)
+        {
+            if (!Subjects.Contains(subject))
+            {
+                Subjects.Add(subject);
+            }
+        }
+
+        public override void DisplayInfo()
+        {
+            base.DisplayInfo();
+            Console.WriteLine($"Môn giảng dạy: {string.Join(", ", Subjects)}");
+        }
+    }
+
+    [Serializable]
+    public class Class
+    {
+        public string ClassName { get; set; }
+        public List<Student> Students { get; set; }
+
+        public Class(string className)
+        {
+            ClassName = className;
+            Students = new List<Student>();
+        }
+
+        public void AddStudent(Student student)
+        {
+            Students.Add(student);
+        }
+
+        public void RemoveStudent(string studentId)
+        {
+            var student = Students.Find(s => s.StudentId == studentId);
+            if (student != null)
+            {
+                Students.Remove(student);
+            }
+        }
+    }
+
+    [Serializable]
     public class Score : ISerializable
     {
         public string Subject { get; set; }
@@ -66,13 +124,6 @@ namespace Name.Models
             info.AddValue("FinalScore", FinalScore);
         }
 
-        protected Score(SerializationInfo info, StreamingContext context)
-        {
-            Subject = info.GetString("Subject");
-            MidtermScore = info.GetDouble("MidtermScore");
-            FinalScore = info.GetDouble("FinalScore");
-        }
-
         public double CalculateFinalScore()
         {
             return (MidtermScore * 0.4) + (FinalScore * 0.6);
@@ -83,9 +134,28 @@ namespace Name.Models
             Console.WriteLine($"Môn học: {Subject}, Giữa kỳ: {MidtermScore}, Cuối kỳ: {FinalScore}, Điểm cuối: {CalculateFinalScore():F2}");
         }
     }
+    [Serializable]
+    public class Report
+    {
+        public string StudentId { get; set; }
+        public string TeacherName { get; set; }
+        public string Content { get; set; }
+        public DateTime Date { get; set; }
+        public string Subject { get; set; }
+
+        public Report(string studentId, string teacherName, string content, string subject)
+        {
+            StudentId = studentId;
+            TeacherName = teacherName;
+            Content = content;
+            Date = DateTime.Now;
+            Subject = subject;
+        }
+    }
+
 
     [Serializable]
-    public class Student : Person, ISerializable
+    public class Student : Person
     {
         public string StudentId { get; set; }
         public string Class { get; set; }
@@ -99,21 +169,6 @@ namespace Name.Models
             StudentId = studentId;
             Class = className;
             Scores = new List<Score>();
-        }
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            base.GetObjectData(info, context);
-            info.AddValue("StudentId", StudentId);
-            info.AddValue("Class", Class);
-            info.AddValue("Scores", Scores);
-        }
-
-        protected Student(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-            StudentId = info.GetString("StudentId");
-            Class = info.GetString("Class");
-            Scores = (List<Score>)info.GetValue("Scores", typeof(List<Score>));
         }
 
         public override void DisplayInfo()
@@ -172,8 +227,7 @@ namespace Name.Models
             if (!File.Exists(filePath)) return new List<Student>();
 
             string jsonString = File.ReadAllText(filePath);
-            List<Student>? students = JsonSerializer.Deserialize<List<Student>>(jsonString);
-            return students ?? new List<Student>();
+            return JsonSerializer.Deserialize<List<Student>>(jsonString) ?? new List<Student>();
         }
 
         public static void SaveLoginData(string filePath, List<LoginInfo> loginInfos)
@@ -188,10 +242,29 @@ namespace Name.Models
             if (!File.Exists(filePath)) return new List<LoginInfo>();
 
             string jsonString = File.ReadAllText(filePath);
-            List<LoginInfo>? loginInfos = JsonSerializer.Deserialize<List<LoginInfo>>(jsonString);
-            return loginInfos ?? new List<LoginInfo>();
+            return JsonSerializer.Deserialize<List<LoginInfo>>(jsonString) ?? new List<LoginInfo>();
+        }
+
+        public static void SaveReportsToFile(string filePath, List<Report> reports)
+        {
+            JsonSerializerOptions options = new JsonSerializerOptions { WriteIndented = true };
+            string jsonString = JsonSerializer.Serialize(reports, options);
+            File.WriteAllText(filePath, jsonString);
+        }
+
+        public static List<Report> LoadReports(string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine("File báo cáo không tồn tại.");
+                return new List<Report>();
+            }
+
+            string jsonString = File.ReadAllText(filePath);
+            return JsonSerializer.Deserialize<List<Report>>(jsonString) ?? new List<Report>();
         }
     }
+
 
     [Serializable]
     public class LoginInfo
@@ -199,57 +272,51 @@ namespace Name.Models
         public string Username { get; set; }
         public string Password { get; set; }
         public string Role { get; set; }
+        public string Subject { get; set; }
 
         public LoginInfo() { }
 
-        public LoginInfo(string username, string password, string role)
+        public LoginInfo(string username, string password, string role, string subject = "")
         {
             Username = username;
             Password = password;
             Role = role;
+            Subject = subject;
         }
     }
+
 
     public class Menu
     {
-        public static void ShowMenu(bool isTeacher)
+        public static void ShowAdminMenu()
         {
             Console.WriteLine("=== Hệ thống quản lý học sinh ===");
-            if (isTeacher)
-            {
-                Console.WriteLine("1. Thêm học sinh");
-                Console.WriteLine("2. Thêm hoặc sửa điểm");
-                Console.WriteLine("3. Sửa thông tin của học sinh");
-                Console.WriteLine("4. Tìm kiếm và xem điểm của học sinh");
-                Console.WriteLine("5. danh sách học sinh");
-                Console.WriteLine("6. Thoát");
-            }
-            else
-            {
-                Console.WriteLine("1. Xem điểm");
-                Console.WriteLine("2. Thoát");
-            }
-            Console.Write("Chọn một tùy chọn: ");
+            Console.WriteLine("1. Thêm học sinh");
+            Console.WriteLine("2. Thêm hoặc sửa điểm");
+            Console.WriteLine("3. Sửa thông tin của học sinh");
+            Console.WriteLine("4. Tìm kiếm và xem điểm của học sinh");
+            Console.WriteLine("5. Danh sách học sinh");
+            Console.WriteLine("6. Thoát");
         }
 
-    }
-
-    public class StudentSearch
-    {
-        public static Student SearchStudent(List<Student> students, string input)
+        public static void ShowTeacherMenu()
         {
-            return students.Find(s => s.StudentId == input || s.Name.Equals(input, StringComparison.OrdinalIgnoreCase));
+            Console.WriteLine("=== Hệ thống quản lý học sinh - Giáo viên ===");
+            Console.WriteLine("1. Thêm hoặc sửa điểm môn học");
+            Console.WriteLine("2. Tổng kết môn học");
+            Console.WriteLine("3. Gửi báo cáo tình hình học tập cho học sinh");
+            Console.WriteLine("4. Thoát");
         }
 
-        public static List<Student> SearchByClass(List<Student> students, string className)
+
+        public static void ShowStudentMenu()
         {
-            return students.FindAll(s => s.Class.Equals(className, StringComparison.OrdinalIgnoreCase));
+            Console.WriteLine("=== Hệ thống quản lý học sinh - Học sinh ===");
+            Console.WriteLine("1. Xem điểm");
+            Console.WriteLine("2. Xem báo cáo từ giáo viên");
+            Console.WriteLine("3. Thoát");
         }
 
-        public static List<Student> SearchByScore(List<Student> students, double minScore)
-        {
-            return students.FindAll(s => s.CalculateAverageScore() >= minScore);
-        }
     }
 
     public class Program
@@ -261,16 +328,17 @@ namespace Name.Models
         static void Main(string[] args)
         {
             Console.OutputEncoding = Encoding.UTF8;
-
             List<LoginInfo> loginInfos = FileHandler.LoadLoginData(loginFilePath);
-            string role = Login(loginInfos);
-            students = FileHandler.LoadDataFromFile(studentFilePath); // Tải dữ liệu từ file khi khởi động
+            LoginInfo loginInfo = Login(loginInfos);
+            students = FileHandler.LoadDataFromFile(studentFilePath);
 
-            if (role == "student")
+            if (loginInfo == null) return;
+
+            if (loginInfo.Role == "student")
             {
                 while (true)
                 {
-                    Menu.ShowMenu(false);
+                    Menu.ShowStudentMenu();
                     string choice = Console.ReadLine();
                     switch (choice)
                     {
@@ -278,6 +346,11 @@ namespace Name.Models
                             SearchStudentAndDisplayScores();
                             break;
                         case "2":
+
+                            ViewReports(loginInfo.Username);
+
+                            break;
+                        case "3":
                             return;
                         default:
                             Console.WriteLine("Tùy chọn không hợp lệ, vui lòng thử lại.");
@@ -285,11 +358,49 @@ namespace Name.Models
                     }
                 }
             }
-            else if (role == "teacher")
+
+            if (loginInfo.Role == "teacher")
+            {
+
+                if (string.IsNullOrEmpty(loginInfo.Subject))
+                {
+                    Console.WriteLine("Vui lòng nhập môn học bạn giảng dạy:");
+                    loginInfo.Subject = Console.ReadLine();
+                    FileHandler.SaveLoginData(loginFilePath, loginInfos);
+                }
+
+                while (true)
+                {
+                    Menu.ShowTeacherMenu();
+                    string choice = Console.ReadLine();
+                    switch (choice)
+                    {
+                        case "1":
+                            AddOrUpdateScore(loginInfo.Subject);
+                            break;
+                        case "2":
+                            SummarizeBySubject(loginInfo.Subject);
+                            break;
+                        case "3":
+                            SendReport(loginInfo.Username, loginInfo.Subject);
+
+                            break;
+
+                        case "4":
+                            return;
+                        default:
+                            Console.WriteLine("Tùy chọn không hợp lệ, vui lòng thử lại.");
+                            break;
+                    }
+                }
+            }
+
+
+            else if (loginInfo.Role == "admin")
             {
                 while (true)
                 {
-                    Menu.ShowMenu(true);
+                    Menu.ShowAdminMenu();
                     string choice = Console.ReadLine();
                     switch (choice)
                     {
@@ -316,37 +427,165 @@ namespace Name.Models
                     }
                 }
             }
-
         }
 
-        public static string Login(List<LoginInfo> loginInfos)
+        public static void SendReport(string teacherName, string subject)
         {
-            Console.Write("Nhập tên đăng nhập: ");
-            string username = Console.ReadLine();
-            Console.Write("Nhập mật khẩu: ");
-            string password = Console.ReadLine();
+            Console.WriteLine("Nhập mã học sinh:");
+            string studentId = Console.ReadLine();
 
-            LoginInfo? loginInfo = loginInfos.Find(info => info.Username == username && info.Password == password);
-            if (loginInfo != null)
+            Console.WriteLine("Nhập nội dung báo cáo:");
+            string content = Console.ReadLine();
+
+
+            Report report = new Report(studentId, teacherName, content, subject);
+
+
+            SaveReport(report);
+
+            Console.WriteLine("Báo cáo đã được gửi thành công.");
+        }
+
+
+
+
+        public static void ViewReports(string studentId)
+        {
+            List<Report> reports = LoadReports("Report.json");
+            var studentReports = reports
+                .Where(r => r.StudentId.Equals(studentId, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+
+
+            foreach (var report in reports)
             {
-                return loginInfo.Role;
+                Console.WriteLine($"Báo cáo từ {report.TeacherName} vào {report.Date}: {report.Content} (Môn học: {report.Subject})");
             }
 
-            Console.WriteLine("Tên đăng nhập hoặc mật khẩu không đúng.");
-            return string.Empty; // Trả về chuỗi rỗng nếu không đăng nhập thành công
+            if (studentReports.Any())
+            {
+                Console.WriteLine("Các báo cáo từ giáo viên:");
+                foreach (var report in studentReports)
+                {
+                    Console.WriteLine($"- Báo cáo từ {report.TeacherName} vào {report.Date}: {report.Content} (Môn học: {report.Subject})");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Không có báo cáo nào từ giáo viên cho bạn.");
+            }
         }
+
+
+
+        public static void SaveReport(Report report)
+        {
+            string filePath = "Report.json";
+            List<Report> reports = LoadReports(filePath);
+            reports.Add(report);
+            FileHandler.SaveReportsToFile(filePath, reports);
+        }
+
+
+        public static List<Report> LoadReports(string filePath)
+        {
+            if (!File.Exists(filePath)) return new List<Report>();
+
+            string jsonString = File.ReadAllText(filePath);
+            return JsonSerializer.Deserialize<List<Report>>(jsonString) ?? new List<Report>();
+        }
+
+        public static LoginInfo Login(List<LoginInfo> loginInfos)
+        {
+            Console.WriteLine("Vui lòng đăng nhập:");
+            Console.Write("Tên đăng nhập: ");
+            string username = Console.ReadLine();
+            Console.Write("Mật khẩu: ");
+            string password = Console.ReadLine();
+
+            foreach (var info in loginInfos)
+            {
+                if (info.Username == username && info.Password == password)
+                {
+                    Console.WriteLine("Đăng nhập thành công!");
+                    return info;
+                }
+            }
+            Console.WriteLine("Sai tên đăng nhập hoặc mật khẩu.");
+            return null;
+        }
+
+        public static void AddStudent()
+        {
+            Console.WriteLine("Nhập tên học sinh:");
+            string name = Console.ReadLine();
+            Console.WriteLine("Nhập tuổi:");
+            int age = int.Parse(Console.ReadLine());
+            Console.WriteLine("Nhập địa chỉ:");
+            string address = Console.ReadLine();
+            Console.WriteLine("Nhập mã học sinh:");
+            string studentId = Console.ReadLine();
+            Console.WriteLine("Nhập lớp:");
+            string className = Console.ReadLine();
+
+            Student student = new Student(name, age, address, studentId, className);
+            students.Add(student);
+            FileHandler.SaveDataToFile(studentFilePath, students);
+            Console.WriteLine("Thêm học sinh thành công.");
+        }
+
+        public static void AddOrUpdateScore(string teacherSubject = "")
+        {
+            Console.WriteLine("Nhập mã học sinh:");
+            string studentId = Console.ReadLine();
+            Student student = students.Find(s => s.StudentId.Equals(studentId, StringComparison.OrdinalIgnoreCase));
+
+            if (student != null)
+            {
+                Console.WriteLine("Nhập môn học:");
+                string subject = Console.ReadLine();
+
+                if (!string.IsNullOrEmpty(teacherSubject) && !subject.Equals(teacherSubject, StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("Bạn không được phép sửa điểm cho môn học này.");
+                    return;
+                }
+
+                Console.WriteLine("Nhập điểm giữa kỳ:");
+                double midtermScore = double.Parse(Console.ReadLine());
+                Console.WriteLine("Nhập điểm cuối kỳ:");
+                double finalScore = double.Parse(Console.ReadLine());
+
+                if (student.ScoreExists(subject))
+                {
+                    student.UpdateScore(subject, midtermScore, finalScore);
+                }
+                else
+                {
+                    student.AddScore(new Score(subject, midtermScore, finalScore));
+                    Console.WriteLine("Điểm môn học đã được thêm.");
+                }
+                FileHandler.SaveDataToFile(studentFilePath, students);
+            }
+            else
+            {
+                Console.WriteLine("Không tìm thấy học sinh.");
+            }
+        }
+
 
         public static void SearchStudentAndDisplayScores()
         {
             students = FileHandler.LoadDataFromFile(studentFilePath);
-            Console.Write("Nhập mã học sinh hoặc tên học sinh: ");
-            string input = Console.ReadLine();
-            Student student = StudentSearch.SearchStudent(students, input);
+            Console.WriteLine("Nhập mã học sinh:");
+            string studentId = Console.ReadLine();
+            Student student = students.Find(s => s.StudentId.Equals(studentId, StringComparison.OrdinalIgnoreCase));
 
             if (student != null)
             {
                 student.DisplayInfo();
-                foreach (Score score in student.Scores)
+                foreach (var score in student.Scores)
                 {
                     score.DisplayScore();
                 }
@@ -357,123 +596,58 @@ namespace Name.Models
             }
         }
 
-        public static void AddStudent()
+        public static void SummarizeBySubject(string subject)
         {
-            Console.Write("Nhập tên học sinh: ");
-            string name = Console.ReadLine();
-            Console.Write("Nhập tuổi: ");
-            if (!int.TryParse(Console.ReadLine(), out int age))
-            {
-                Console.WriteLine("Tuổi không hợp lệ. Vui lòng nhập lại.");
-                return;
-            }
-            Console.Write("Nhập địa chỉ: ");
-            string address = Console.ReadLine();
-            Console.Write("Nhập mã học sinh: ");
-            string studentId = Console.ReadLine();
-            Console.Write("Nhập lớp: ");
-            string className = Console.ReadLine();
-
-            Student student = new Student(name, age, address, studentId, className);
-            students.Add(student);
-            FileHandler.SaveDataToFile(studentFilePath, students);
-            Console.WriteLine("Đã thêm học sinh thành công!");
-        }
-        public static void SummarizeByClass()
-        {
-            // Nhóm học sinh theo lớp
-            var studentsByClass = new Dictionary<string, List<Student>>();
-
+            Console.WriteLine($"Tổng kết điểm cho môn {subject}:");
             foreach (var student in students)
             {
-                if (!studentsByClass.ContainsKey(student.Class))
+                Score score = student.Scores.Find(s => s.Subject.Equals(subject, StringComparison.OrdinalIgnoreCase));
+                if (score != null)
                 {
-                    studentsByClass[student.Class] = new List<Student>();
-                }
-                studentsByClass[student.Class].Add(student);
-            }
-
-            // Hiển thị kết quả tổng kết
-            foreach (var entry in studentsByClass)
-            {
-                Console.WriteLine($"Lớp: {entry.Key}");
-                foreach (var student in entry.Value)
-                {
-                    Console.WriteLine($"  - {student.Name}, Mã học sinh: {student.StudentId}");
+                    Console.WriteLine($"{student.Name}: {score.CalculateFinalScore():F2}");
                 }
             }
         }
 
-
-        public static void AddOrUpdateScore()
+        public static void SummarizeByClass()
         {
-            Console.Write("Nhập mã học sinh: ");
-            string studentId = Console.ReadLine();
-            Student student = StudentSearch.SearchStudent(students, studentId);
-            if (student == null)
+            Console.WriteLine("Danh sách học sinh:");
+            foreach (var student in students)
             {
-                Console.WriteLine("Không tìm thấy học sinh.");
-                return;
+                student.DisplayInfo();
+                Console.WriteLine("Điểm:");
+                foreach (var score in student.Scores)
+                {
+                    score.DisplayScore();
+                }
+                Console.WriteLine();
             }
-
-            Console.Write("Nhập tên môn học: ");
-            string subject = Console.ReadLine();
-            Console.Write("Nhập điểm giữa kỳ: ");
-            if (!double.TryParse(Console.ReadLine(), out double midtermScore))
-            {
-                Console.WriteLine("Điểm giữa kỳ không hợp lệ. Vui lòng nhập lại.");
-                return;
-            }
-            Console.Write("Nhập điểm cuối kỳ: ");
-            if (!double.TryParse(Console.ReadLine(), out double finalScore))
-            {
-                Console.WriteLine("Điểm cuối kỳ không hợp lệ. Vui lòng nhập lại.");
-                return;
-            }
-
-            if (student.ScoreExists(subject))
-            {
-                student.UpdateScore(subject, midtermScore, finalScore);
-            }
-            else
-            {
-                Score score = new Score(subject, midtermScore, finalScore);
-                student.AddScore(score);
-                Console.WriteLine("Đã thêm điểm môn học.");
-            }
-
-            FileHandler.SaveDataToFile(studentFilePath, students);
         }
 
         public static void UpdateStudentInfo()
         {
-            Console.Write("Nhập mã học sinh: ");
+            Console.WriteLine("Nhập mã học sinh:");
             string studentId = Console.ReadLine();
-            Student student = StudentSearch.SearchStudent(students, studentId);
-            if (student == null)
+            Student student = students.Find(s => s.StudentId.Equals(studentId, StringComparison.OrdinalIgnoreCase));
+
+            if (student != null)
+            {
+                Console.WriteLine("Nhập tên mới:");
+                student.Name = Console.ReadLine();
+                Console.WriteLine("Nhập tuổi mới:");
+                student.Age = int.Parse(Console.ReadLine());
+                Console.WriteLine("Nhập địa chỉ mới:");
+                student.Address = Console.ReadLine();
+                Console.WriteLine("Nhập lớp mới:");
+                student.Class = Console.ReadLine();
+
+                FileHandler.SaveDataToFile(studentFilePath, students);
+                Console.WriteLine("Cập nhật thông tin học sinh thành công.");
+            }
+            else
             {
                 Console.WriteLine("Không tìm thấy học sinh.");
-                return;
             }
-
-            Console.Write("Nhập tên mới (bỏ trống nếu không thay đổi): ");
-            string newName = Console.ReadLine();
-            if (!string.IsNullOrEmpty(newName)) student.Name = newName;
-
-            Console.Write("Nhập tuổi mới (bỏ trống nếu không thay đổi): ");
-            string ageInput = Console.ReadLine();
-            if (int.TryParse(ageInput, out int newAge)) student.Age = newAge;
-
-            Console.Write("Nhập địa chỉ mới (bỏ trống nếu không thay đổi): ");
-            string newAddress = Console.ReadLine();
-            if (!string.IsNullOrEmpty(newAddress)) student.Address = newAddress;
-
-            Console.Write("Nhập lớp mới (bỏ trống nếu không thay đổi): ");
-            string newClass = Console.ReadLine();
-            if (!string.IsNullOrEmpty(newClass)) student.Class = newClass;
-
-            FileHandler.SaveDataToFile(studentFilePath, students);
-            Console.WriteLine("Đã cập nhật thông tin học sinh thành công!");
         }
     }
 }
